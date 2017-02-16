@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="pull-right">
+  {% if user == project.owner or is_admin%}
+  <a href="{% url "projects-edit" project.id %}" class="btn btn-default">Edit project data</a>
+    {% if project.public %}
+  <a href="?share=false" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Unsharing a project makes it private so that only users given permissions can access it"><span class="glyphicon glyphicon-share"></span> Unshare</a>
+    {% else %}
+  <a href="?share=true" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Sharing a project makes it public so that anyone can access it"><span class="glyphicon glyphicon-share"></span> Share</a>
+    {% endif %}
+  {% endif %}
+  <button class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Refresh page" onClick="location.reload(true)"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+  </div>
+
+  <h2>{{object}}</h2>
+  <div class="lead">{{object.description_markdown}}</div>
+
+  <dl class="dl-horizontal">
+    <dt>Path</dt>
+    <dd>{{object.absolutePath}}</dd>
+  </dl>
+  
+ <h3>Parameters</h3>
+<div class="row">
+
+ <div class="col-md-8">
+  <div class="panel panel-default">
+    <div class="panel-heading">Pipelines</div>
+    <div class="panel-body">
+      <table class="table">
+        {% for pipeline in object.pipelines %}
+	<tr><th scope="row">{{pipeline.name}}</th><td>{{pipeline.value}}</td></tr>
+        {% endfor %}
+      </table>
+
+    </div>
+  </div>
+ </div>
+ <div class="col-md-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">Datasets</div>
+    <div class="panel-body">
+      <table class="table">
+        {% for dataset in object.datasets %}
+	<tr><th scope="row">{{dataset.name}}</th><td>{{dataset.value}}</td></tr>
+        {% endfor %}
+      </table>
+
+    </div>
+  </div>
+ </div>
+</div>
+  <h3>Jobs</h3>
+
+  <div class="form-group">
+{% if can_start_jobs %}
+    <a href="{% url "projects-run" object.id %}" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> New</a>
+{% endif %}
+  </div>
+  {% if object.jobs.all %}
+    <table class="table table-hover">
+    <tr><th>ID</th><th>Name</th><th>Pipeline</th><th>Dataset</th><th>Status</th></tr>
+    {% for job in object.jobs.all %}
+    <tr class="job-row"><td>{{ job.id }}</td><td><a href="{% url "jobs-detail" job.id %}">{{ job }}</a></td><td>{{ job.pipeline|default:"-" }}</td><td>{{ job.dataset|default:"-" }}</td><td></td></tr>
+    {% endfor %}
+    </table>
+  {% else %}
+    <div>No jobs for project</div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block footer %}
+{{block.super}}
+<script type="text/javascript">
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+$('.job-row').click(function() {
+  var href=$(this).find("a").attr("href")
+  if (href) window.location = href
+})
+</script>
+{% endblock %}

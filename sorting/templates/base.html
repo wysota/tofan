@@ -1,0 +1,47 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap.min.css" %}"/>
+    <script src="{% static "rest_framework/js/jquery-1.12.4.min.js" %}"></script>
+    <script src="{% static "rest_framework/js/bootstrap.min.js" %}"></script>
+    {% block extrahead %}{% endblock %}
+  </head>
+<body>
+<div style="background-color: #563d7c; background-image: linear-gradient(to bottom,#563d7c 0,#6f5499 100%);">
+
+    <div class="container">
+	<div class="page-header">
+	    <div class="pull-right" style="color: white;">
+	    <img src="/static/logo.jpg" class="pull-right" style="height:80px; width: 80px; margin-left: 1em; border-radius: 10px; border: solid 2px white;"/>
+	    <span style="font-size: 24px;">Center for Computational Biology<br/>Flatiron Institute</span>
+	    </div>
+	    <h1 style="color: white;">MountainSort<br/><small style="color: rgb(220,220,220);">Spike sorting software</small></h1>
+	</div>
+    </div>
+</div>
+
+{% block breadcrumb %}
+<div class="container">
+  {% if breadcrumb %}
+  <ol class="breadcrumb">
+  {% for crumb in breadcrumb %}
+    {% if forloop.last %}
+    <li class="active">{{crumb.label}}</li>
+    {% else %}
+    <li><a href="{{crumb.url}}">{{crumb.label}}</a></li>
+    {% endif %}
+  {% endfor %}
+  </ol>
+  {% endif %}
+</div>
+{% endblock %}
+<div id="content">
+{% block content %}
+{% endblock %}
+</div>
+<div id="footer">
+{% block footer %}{% endblock %}
+</div>
+</body>
+</html>

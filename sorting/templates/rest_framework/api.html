@@ -1,0 +1,9 @@
+{% extends "rest_framework/base.html" %}
+
+{# Override this template in your own templates directory to customize #}
+
+{% block title %}{% if name %}{{ name }} -{% endif %} Mountain Sort{% endblock %}
+
+{% block branding %}
+<a class='navbar-brand' href="//sort.datalaboratory.org">Mountain Sort</a>
+{% endblock %}

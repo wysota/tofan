@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="pull-right">
+    <a href="{% url "daemon-state" %}" class="btn btn-default">Daemon status</a>
+  </div>
+  <h2>Projects</h2>
+  <table class="table table-hover">
+    <colgroup>
+      <col class="col-xs-1"/>
+      <col class="col-xs-11"/>
+    </colgroup>
+    <thead>
+    <tr><th>#</th><th>Name</th><th>Owner</th><th>Jobs</th></tr>
+    </thead>
+    <tbody>
+    {% for project in object_list %}
+    <tr class="project-row">
+      <th scope="row">{{forloop.counter}}</td>
+      <td><a href="{% url 'projects-detail' project.id %}">{{ project }}</a>
+        <div class="pull-right">{% if project.public %} <span class="label label-danger">Public</span>{% endif %}</div>
+      </td>
+      <td>{{ project.owner }}</td><td style="text-align: right">{{ project.jobs.count }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+{% block footer %}
+<script type="text/javascript">
+$('.project-row').click(function() {
+  var href=$(this).find("a").attr("href")
+  if (href) window.location = href
+})
+</script>
+{% endblock %}

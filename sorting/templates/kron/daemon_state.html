@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<h2 data-toggle="collapse" data-target="#daemon-state">Daemon State</h2>
+
+<pre id="daemon-state" class="collapse">
+{{ daemon_state }}
+</pre>
+
+<hr/>
+
+<script type="text/javascript">
+function filter_table(container, shown) {
+  var allrows = $(container+" > tbody").children()
+  var baserows = allrows.filter(".base")
+  // find expanded extra row
+  var expanded = allrows.filter(".in")
+  if (expanded) {
+    expanded.collapse("hide")
+    expanded.removeClass("in")
+  }
+  if(shown) {
+    baserows.hide()
+    baserows.filter(shown).show()
+  } else {
+    baserows.show()
+  }
+}
+</script>
+
+{% if state.is_running %}
+<div class="alert alert-success">Daemon is running.</div>
+<ul class="nav nav-tabs">
+  <li class="active"><a data-toggle="tab" href="#processes">Processes <span class="badge">{{state.processes.items|length}}</span></a></li>
+  <li><a data-toggle="tab" href="#scripts">Pipelines <span class="badge">{{state.scripts.items|length}}</span></a></li>
+</ul>
+<div class="tab-content">
+  <div id="processes" class="tab-pane fade in active panel panel-default">
+
+    <div class="panel-heading">
+      <div class="col text-right clearfix">
+      <div class="btn-group btn-group-xs pull-right" role="group" aria-label="..." style="margin-left: 1em;">
+        <button type="button" class="btn btn-danger" onClick="filter_table('#table-processes', '.danger')">Failure</button>
+        <button type="button" class="btn btn-success" onClick="filter_table('#table-processes', '.success')">Success</button>
+        <button type="button" class="btn btn-default" onClick="filter_table('#table-processes', '.running')">Running</button>
+        <button type="button" class="btn btn-default" onClick="filter_table('#table-processes')">All</button>
+      </div>
+      </div>
+    </div>
+    <table class="table table-hover panel-body" id="table-processes">
+    <thead>
+    <tr>
+	<th>ID</th><th>Type</th><th>Processor</th><th>Queued</th><th>Started</th><th>Finished</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for processname, process in state.processes.items %}
+    {% if process.success %}
+    <tr class="base success" data-toggle="collapse" data-target="#extra-{{forloop.counter}}">
+    {% elif process.is_finished and not process.success %}
+    <tr class="base danger" data-toggle="collapse" data-target="#extra-{{forloop.counter}}">
+    {% else %}
+    <tr class="base running" data-toggle="collapse" data-target="#extra-{{forloop.counter}}">
+    {% endif %}
+	<th scope="row" title="{{process.id}}">{{process.id|truncatechars:9}}</th>
+        <td>{{process.prtype}}</td>
+	<td>{{process.processor_name}}</td>
+        <td>{{process.timestamp_queued}}</td>
+	<td>{{process.timestamp_started}}</td>
+        <td>{{process.timestamp_finished}}</td>
+    </tr>
+    <tr class="collapse" id="extra-{{forloop.counter}}">
+      <td colspan="6">
+        <dl class="dl-horizontal">
+          {% for key, value in process.items %}
+          <dt>{{key}}</dt>
+          <dd>{{value}}</dd>
+          {% endfor %}
+        </dl>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  <div id="scripts" class="tab-pane fade">
+    
+    {% if state.scripts.items %}
+    <div class="lead text-center">Pipeline list goes here ({{state.scripts.items|length}})</div>
+    {% else %}
+    <div class="lead text-center">No pipelines.</div>
+    {% endif %}
+  </div>
+</div>
+
+
+{% comment %}
+<h3>Processes</h3>
+
+
+{% for processname, process in state.processes.items %}
+<h4>{{ processname }}</h4>
+<dl class="dl-horizontal">
+  {% for key, value in process.items %}
+  <dt>{{key}}</dt>
+  <dd>{{value}}</dd>
+  {% endfor %}
+</dl>
+{% endfor %}
+{% endcomment %}
+{% else %}
+<div class="alert alert-danger"> Daemon is <b>not running</b>.</div>
+{% endif %}
+</div>
+{% endblock %}
+
