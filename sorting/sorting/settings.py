@@ -162,3 +162,9 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_URL='/login/'
+
+from django.contrib import messages
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}

@@ -1,3 +1,5 @@
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.forms import ModelForm
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render
@@ -15,6 +17,7 @@ from django.forms import models as model_forms
 
 import subprocess
 import json
+import os.path
 
 # Create your views here.
 
@@ -43,7 +46,10 @@ class ProjectDetail(DetailView):
       if "share" in self.request.GET:
         obj = self.get_object()
         if obj.owner != self.request.user: return HttpResponseForbidden()
+        oldpublic = obj.public
         obj.public = self.request.GET.get("share")=="true"
+        if oldpublic != obj.public:
+            messages.success(self.request, "Project has been made public." if obj.public else "Project has been made private.")
         obj.save()
       return super(ProjectDetail, self).get(*args, **kwargs)
 
@@ -64,12 +70,18 @@ class ProjectDetail(DetailView):
       context["can_start_jobs"] = (not self.request.user.is_anonymous) or (self.object.owner == self.request.user)
       context["is_owner"] = self.object.owner == self.request.user
       context["is_admin"] = self.request.user.is_staff
+
+      if not os.path.isfile("{}/{}".format(self.object.absolutePath(), "pipelines.txt")):
+        messages.error(self.request, "Project is probably misconfigured - 'pipelines.txt' doesn't exist.")
+      elif not os.path.isfile("{}/{}".format(self.object.absolutePath(), "datasets.txt")):
+        messages.error(self.request, "Project is probably misconfigured - 'datasets.txt' doesn't exist.")
       return context
 
-class ProjectUpdate(UpdateView):
+class ProjectUpdate(SuccessMessageMixin, UpdateView):
     model = Project
     fields = ['name', 'description', 'path']
     fields_admin = ['name', 'owner', 'description', 'path']
+    success_message = "Project data saved successfully"
 
     def get_context_data(self, **kwargs):
       if not self.request.user.is_staff and self.request.user != self.object.owner:
@@ -91,6 +103,10 @@ class ProjectUpdate(UpdateView):
     def get_form_class(self):
       fields = self.fields_admin if self.request.user.is_staff else self.fields
       return model_forms.modelform_factory(self.model, fields=fields)
+
+#    def form_valid(self, form):
+#      messages.success(self.request, "Project data saved")
+#      return super(ProjectUpdate, self).form_valid(form)
 
 class JobDetail(DetailView):
     model = Job

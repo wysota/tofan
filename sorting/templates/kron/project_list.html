@@ -18,7 +18,7 @@
     <tr class="project-row">
       <th scope="row">{{forloop.counter}}</td>
       <td><a href="{% url 'projects-detail' project.id %}">{{ project }}</a>
-        <div class="pull-right">{% if project.public %} <span class="label label-danger">Public</span>{% endif %}</div>
+        <div class="pull-right">{% if project.public %} <span class="label label-danger" data-toggle="tooltip" data-placement="top" title="This project can be viewed by anyone">Public</span>{% endif %}</div>
       </td>
       <td>{{ project.owner }}</td><td style="text-align: right">{{ project.jobs.count }}</td>
     </tr>
@@ -34,5 +34,9 @@ $('.project-row').click(function() {
   var href=$(this).find("a").attr("href")
   if (href) window.location = href
 })
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+
 </script>
 {% endblock %}
