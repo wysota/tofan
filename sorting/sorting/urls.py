@@ -17,9 +17,12 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from sorting import settings
 from kron.views import static
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^login/$', auth_views.login, {'extra_context': {'breadcrumb': [ { 'url': "/", "label": "MountainSort"}, {'url': '', "label": "Login"}]}}, name='login'),
+    url(r'^logout/$', auth_views.logout, {'extra_context': {'breadcrumb': [ { 'url': "/", "label": "MountainSort"}, {'url': '', "label": "Logout"}]}}, name='logout'),
     url(r'^api/', include('api.urls')),
     url(r'^kron/', include('kron.urls')),
     url(r'^$', static, {"page_name": "index"}),

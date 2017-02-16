@@ -7,6 +7,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, T
 from kron.models import Project, Job
 from sorting.settings import MOUNTAINSORT_SETTINGS
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 
 from django.forms import models as model_forms
@@ -175,6 +177,8 @@ class RunJobView(CreateView):
 #    def get_form_class(self):
 #      return model_forms.modelform_factory(self.model, fields=self.fields, form=JobForm)
 
+
+@method_decorator(login_required, name='dispatch')
 class DaemonStateView(TemplateView):
     template_name = 'kron/daemon_state.html'
 
