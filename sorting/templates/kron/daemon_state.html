@@ -85,12 +85,45 @@ function filter_table(container, shown) {
     </table>
   </div>
   <div id="scripts" class="tab-pane fade">
-    
-    {% if state.scripts.items %}
-    <div class="lead text-center">Pipeline list goes here ({{state.scripts.items|length}})</div>
+    <table class="table table-hover panel-body" id="table-pipelines">
+    <thead>
+    <tr>
+	<th>ID</th><th>Type</th><th>Scripts</th><th>Queued</th><th>Started</th><th>Finished</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for pipelinename, pipeline in state.scripts.items %}
+    {% if pipeline.success %}
+    <tr class="base success" data-toggle="collapse" data-target="#extra-pipeline-{{forloop.counter}}">
+    {% elif pipeline.is_finished and not pipeline.success %}
+    <tr class="base danger" data-toggle="collapse" data-target="#extra-pipeline-{{forloop.counter}}">
     {% else %}
-    <div class="lead text-center">No pipelines.</div>
+    <tr class="base running" data-toggle="collapse" data-target="#extra-pipeline-{{forloop.counter}}">
     {% endif %}
+	<th scope="row" title="{{process.id}}">{{pipeline.id|truncatechars:9}}</th>
+        <td>{{pipeline.prtype}}</td>
+	<td>
+	  {% for script_name in pipeline.script_names %}
+	  {{ script_name }}
+	  {% endfor %}
+        </td>
+        <td>{{pipeline.timestamp_queued}}</td>
+	<td>{{pipeline.timestamp_started}}</td>
+        <td>{{pipeline.timestamp_finished}}</td>
+    </tr>
+    <tr class="collapse" id="extra-pipeline-{{forloop.counter}}">
+      <td colspan="6">
+        <dl class="dl-horizontal">
+          {% for key, value in pipeline.items %}
+          <dt>{{key}}</dt>
+          <dd>{{value}}</dd>
+          {% endfor %}
+        </dl>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
   </div>
 </div>
 

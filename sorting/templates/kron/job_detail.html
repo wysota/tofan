@@ -5,12 +5,20 @@
 <h2>{{job}}</h2>
 <p class="lead">{{job.description}}</p>
   <dl class="dl-horizontal">
+    <dt>Script ID</dt>
+    <dd>{{job.script_id}}</dd>
     <dt>Project</dt>
     <dd>{{job.project}}</dd>
     <dt>Created</dt>
     <dd>{{job.created}}</dd>
     <dt>By</dt>
     <dd>{% if job.owner.last_name %}{{job.owner.first_name}} {{job.owner.last_name}}{% else %}{{ job.owner }}{% endif %}</dd>
+  </dl>
+  <h3>Status</h3>
+  <dl class="dl-horizontal">
+  {% for name, item in status.items %}
+    <dt>{{name}}</dt><dd>{{item}}</dd>
+  {% endfor %}
   </dl>
 </div>
 {% endblock %}

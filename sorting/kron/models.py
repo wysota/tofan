@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 
 import markdown
+from os import path
 
 from sorting.settings import MOUNTAINSORT_SETTINGS
 
@@ -16,16 +17,20 @@ class Project(models.Model):
   path = models.CharField(max_length=200, default='')
   public = models.BooleanField(default=False)
 
+  class Meta:
+    verbose_name = 'project'
+
   def __str__(self): 
     return self.name
 
+  @property
   def absolutePath(self):
     bd = MOUNTAINSORT_SETTINGS["BASE_DIR"]
-    return "{}/{}".format(bd, self.path)
+    return path.normpath(path.join(bd, self.path))
 
   def pipelines(self):
     try:
-     with open("{}/pipelines.txt".format(self.absolutePath())) as f:
+     with open(path.join(self.absolutePath, "pipelines.txt")) as f:
       for line in f:
         tokens = line.split(" ",1)
         yield {'name': tokens[0], 'value': tokens[1] }
@@ -34,7 +39,7 @@ class Project(models.Model):
 
   def datasets(self):
    try:
-    with open("{}/datasets.txt".format(self.absolutePath())) as f:
+    with open(path.join(self.absolutePath, "datasets.txt")) as f:
       for line in f:
         tokens = line.split(" ",1)
         yield {'name': tokens[0], 'value': tokens[1] }
@@ -61,6 +66,7 @@ class Job(models.Model):
   created = models.DateTimeField(auto_now_add=True)
   pipeline = models.CharField(max_length=100)
   dataset = models.CharField(max_length=100)
+  script_id = models.CharField(max_length=32, editable=False)
 
   def __str__(self):
     return self.name

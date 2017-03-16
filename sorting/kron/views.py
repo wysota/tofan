@@ -15,6 +15,8 @@ from django.utils.decorators import method_decorator
 
 from django.forms import models as model_forms
 
+from kron.kron import Kron
+
 import subprocess
 import json
 import os.path
@@ -35,7 +37,7 @@ class ProjectList(ListView):
       context = super(ProjectList, self).get_context_data(**kwargs)
       context["breadcrumb"] = (
         {"url": "/",      "label": "MountainSort" },
-        {"url": "/kron/", "label": "Projects" },
+        {"url": reverse("projects-list"), "label": "Projects" },
       )
       return context
 
@@ -64,16 +66,16 @@ class ProjectDetail(DetailView):
       context = super(ProjectDetail, self).get_context_data(**kwargs)
       context["breadcrumb"] = (
         {"url": "/",      "label": "MountainSort" },
-        {"url": "/kron/", "label": "Projects" },
-        {"url": "/kron/{}".format(self.object.id), "label": self.object.name },
+        {"url": reverse("projects-list"), "label": "Projects" },
+        {"url": reverse("projects-detail", args=[self.object.id]), "label": self.object.name },
       )
       context["can_start_jobs"] = (not self.request.user.is_anonymous) or (self.object.owner == self.request.user)
       context["is_owner"] = self.object.owner == self.request.user
       context["is_admin"] = self.request.user.is_staff
 
-      if not os.path.isfile("{}/{}".format(self.object.absolutePath(), "pipelines.txt")):
+      if not os.path.isfile(os.path.join(self.object.absolutePath, "pipelines.txt")):
         messages.error(self.request, "Project is probably misconfigured - 'pipelines.txt' doesn't exist.")
-      elif not os.path.isfile("{}/{}".format(self.object.absolutePath(), "datasets.txt")):
+      elif not os.path.isfile(os.path.join(self.object.absolutePath, "datasets.txt")):
         messages.error(self.request, "Project is probably misconfigured - 'datasets.txt' doesn't exist.")
       return context
 
@@ -89,7 +91,7 @@ class ProjectUpdate(SuccessMessageMixin, UpdateView):
       context = super(ProjectUpdate, self).get_context_data(**kwargs)
       context["breadcrumb"] = (
         {"url": "/",      "label": "MountainSort" },
-        {"url": "/kron/", "label": "Projects" },
+        {"url": reverse("projects-list"), "label": "Projects" },
         {"url": reverse("projects-detail", args=[self.object.id]), "label": self.object.name },
         {"url": reverse("projects-edit", args=[self.object.id]), "label": "Edit" },
       )
@@ -103,10 +105,6 @@ class ProjectUpdate(SuccessMessageMixin, UpdateView):
     def get_form_class(self):
       fields = self.fields_admin if self.request.user.is_staff else self.fields
       return model_forms.modelform_factory(self.model, fields=fields)
-
-#    def form_valid(self, form):
-#      messages.success(self.request, "Project data saved")
-#      return super(ProjectUpdate, self).form_valid(form)
 
 class JobDetail(DetailView):
     model = Job
@@ -122,10 +120,13 @@ class JobDetail(DetailView):
       context = super(JobDetail, self).get_context_data(**kwargs)
       context["breadcrumb"] = (
         {"url": "/",      "label": "MountainSort" },
-        {"url": "/kron/", "label": "Projects" },
+        {"url": reverse("projects-list"), "label": "Projects" },
         {"url": reverse("projects-detail", args=[self.object.project.id]), "label": self.object.project.name },
         {"url": reverse("jobs-detail", args=[self.object.id]), "label": self.object.name },
       )
+      kron = Kron(self.object.project.path)
+      stat = kron.script_status(self.object.script_id)
+      context["status"] = stat._asdict()
       return context
 
 
@@ -173,6 +174,14 @@ class RunJobView(CreateView):
       self.object = form.save(False)
       self.object.owner = self.request.user
       self.object.project = Project.objects.get(pk=self.kwargs.get("pk"))
+      try:
+          kron = Kron(self.object.project.path)
+          data = kron.start(self.object.pipeline, self.object.dataset)
+          self.object.script_id = data.script_id
+          messages.success(self.request, "Job started: {}".format(self.object.script_id))
+      except:
+          messages.error(self.request, "Unable to start job")
+          return HttpResponseRedirect(self.get_success_url())
       self.object.save()
       return HttpResponseRedirect(self.get_success_url())
 #      ret = super(RunJobView, self).form_valid(form)

@@ -10,7 +10,7 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ('name', 'owner__username', 'owner__first_name', 'owner__last_name', 'path')
 
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('name','project', 'owner', 'pipeline', 'dataset', 'created')
+    list_display = ('name','project', 'owner', 'script_id', 'pipeline', 'dataset', 'created')
     list_filter = ('project','pipeline', 'dataset', 'owner')
     list_select_related = True
 #    readonly_fields = ('project', 'owner',)
